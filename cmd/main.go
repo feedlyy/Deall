@@ -9,6 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -56,6 +57,21 @@ func main() {
 		panic(err)
 	}
 	logrus.Info("Got ping from mongodb")
+
+	// Get the student collection
+	collection := client.Database(dbName).Collection("users")
+
+	// Create a unique index on the name field
+	indexModel := mongo.IndexModel{
+		Keys:    bson.M{"name": 1},
+		Options: options.Index().SetUnique(true),
+	}
+
+	indexView := collection.Indexes()
+	_, err = indexView.CreateOne(ctx, indexModel)
+	if err != nil {
+		log.Fatal("Failed to create index:", err)
+	}
 
 	userRepo := repository.NewUserRepository(client.Database(dbName))
 	userService := service.NewUserService(userRepo)
