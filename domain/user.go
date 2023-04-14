@@ -17,10 +17,12 @@ type UserRepository interface {
 	Store(ctx context.Context, user Users) error
 	Fetch(ctx context.Context) ([]Users, error)
 	GetByUsername(ctx context.Context, usr string) (Users, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type UserService interface {
 	Register(ctx context.Context, user Users) error
 	GetUsers(ctx context.Context) ([]Users, error)
 	GetUser(ctx context.Context, usr string) (Users, error)
+	DeleteUser(ctx context.Context, id string) error
 }

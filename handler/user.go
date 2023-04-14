@@ -164,3 +164,50 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request, _ httprout
 	json.NewEncoder(w).Encode(resp)
 	return
 }
+
+func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var (
+		err  error
+		resp = helpers.Response{
+			Status:  helpers.SuccessMsg,
+			Message: "",
+			Data:    nil,
+		}
+		id = ps.ByName("id")
+	)
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(context.Background(), u.timeout)
+	defer cancel()
+
+	if id == "" {
+		resp.Status = helpers.FailMsg
+		resp.Message = "id cannot be empty"
+
+		// Serialize the error response to JSON and send it back to the client
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	err = u.userService.DeleteUser(ctx, id)
+	if err != nil {
+		resp.Status = helpers.FailMsg
+		resp.Message = err.Error()
+		switch {
+		case err == mongo.ErrNoDocuments:
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(resp)
+			return
+		default:
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}
+
+	json.NewEncoder(w).Encode(resp)
+	return
+}

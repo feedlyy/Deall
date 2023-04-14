@@ -26,3 +26,7 @@ func (u *userService) GetUsers(ctx context.Context) ([]domain.Users, error) {
 func (u *userService) GetUser(ctx context.Context, usr string) (domain.Users, error) {
 	return u.userRepo.GetByUsername(ctx, usr)
 }
+
+func (u *userService) DeleteUser(ctx context.Context, id string) error {
+	return u.userRepo.Delete(ctx, id)
+}

@@ -2,9 +2,11 @@ package repository
 
 import (
 	"Deall/domain"
+	"Deall/helpers"
 	"context"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -22,7 +24,7 @@ func (u *userRepository) Store(ctx context.Context, user domain.Users) error {
 		err error
 	)
 
-	_, err = u.db.Collection("users").InsertOne(ctx, user)
+	_, err = u.db.Collection(helpers.UsersCollection).InsertOne(ctx, user)
 	if err != nil {
 		logrus.Errorf("Users - Repository|err when store data, err:%v", err)
 		return err
@@ -38,7 +40,7 @@ func (u *userRepository) Fetch(ctx context.Context) ([]domain.Users, error) {
 		cursor *mongo.Cursor
 	)
 
-	cursor, err = u.db.Collection("users").Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{"password": 0}))
+	cursor, err = u.db.Collection(helpers.UsersCollection).Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{"password": 0}))
 	if err != nil {
 		logrus.Errorf("Users - Repository|err when fetch all data, err:%v", err)
 		return nil, err
@@ -64,7 +66,7 @@ func (u *userRepository) GetByUsername(ctx context.Context, usr string) (domain.
 		res domain.Users
 	)
 
-	err = u.db.Collection("users").FindOne(ctx, bson.M{"username": usr}).Decode(&res)
+	err = u.db.Collection(helpers.UsersCollection).FindOne(ctx, bson.M{"username": usr}).Decode(&res)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logrus.Error("User - Repository|no document found")
@@ -75,4 +77,33 @@ func (u *userRepository) GetByUsername(ctx context.Context, usr string) (domain.
 	}
 
 	return res, nil
+}
+
+func (u *userRepository) Delete(ctx context.Context, id string) error {
+	var (
+		err    error
+		objID  primitive.ObjectID
+		delRes *mongo.DeleteResult
+	)
+
+	// turn string id into objID
+	objID, err = primitive.ObjectIDFromHex(id)
+	if err != nil {
+		logrus.Errorf("User - Repository|err when generate objID, err:%v", err)
+		return err
+	}
+
+	delRes, err = u.db.Collection(helpers.UsersCollection).DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
+		logrus.Errorf("User - Repository|err when delete user by username, err:%v", err)
+		return err
+	}
+
+	if delRes.DeletedCount == 0 {
+		err = mongo.ErrNoDocuments
+		logrus.Error("User - Repository|no document found")
+		return err
+	}
+
+	return nil
 }
