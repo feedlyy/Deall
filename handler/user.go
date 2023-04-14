@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 	"time"
 )
@@ -99,7 +100,7 @@ func (u *UserHandler) GetAllUser(w http.ResponseWriter, r *http.Request, _ httpr
 	ctx, cancel := context.WithTimeout(context.Background(), u.timeout)
 	defer cancel()
 
-	users, err = u.userService.GetUSers(ctx)
+	users, err = u.userService.GetUsers(ctx)
 	if err != nil {
 		resp.Status = helpers.FailMsg
 		resp.Message = err.Error()
@@ -111,6 +112,55 @@ func (u *UserHandler) GetAllUser(w http.ResponseWriter, r *http.Request, _ httpr
 	}
 
 	resp.Data = users
+	json.NewEncoder(w).Encode(resp)
+	return
+}
+
+func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	var (
+		err  error
+		resp = helpers.Response{
+			Status:  helpers.SuccessMsg,
+			Message: "",
+			Data:    nil,
+		}
+		user domain.Users
+		usr  = r.URL.Query().Get("username")
+	)
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(context.Background(), u.timeout)
+	defer cancel()
+
+	if usr == "" {
+		resp.Status = helpers.FailMsg
+		resp.Message = "username cannot be empty"
+
+		// Serialize the error response to JSON and send it back to the client
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	user, err = u.userService.GetUser(ctx, usr)
+	if err != nil {
+		resp.Status = helpers.FailMsg
+		resp.Message = err.Error()
+		switch {
+		case err == mongo.ErrNoDocuments:
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(resp)
+			return
+		default:
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}
+
+	resp.Data = user
 	json.NewEncoder(w).Encode(resp)
 	return
 }

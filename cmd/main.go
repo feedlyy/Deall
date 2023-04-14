@@ -80,7 +80,8 @@ func main() {
 	serverPort := viper.GetString(`server.address`)
 	handler := httprouter.New()
 	handler.POST("/api/v1/user", userHandler.RegistUser)
-	handler.GET("/api/v1/user", userHandler.GetAllUser)
+	handler.GET("/api/v1/users", userHandler.GetAllUser)
+	handler.GET("/api/v1/user", userHandler.GetUser)
 
 	logrus.Infof("Server run on localhost%v", serverPort)
 	log.Fatal(http.ListenAndServe(serverPort, handler))

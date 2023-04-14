@@ -57,3 +57,22 @@ func (u *userRepository) Fetch(ctx context.Context) ([]domain.Users, error) {
 
 	return res, nil
 }
+
+func (u *userRepository) GetByUsername(ctx context.Context, usr string) (domain.Users, error) {
+	var (
+		err error
+		res domain.Users
+	)
+
+	err = u.db.Collection("users").FindOne(ctx, bson.M{"username": usr}).Decode(&res)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("User - Repository|no document found")
+			return domain.Users{}, err
+		}
+		logrus.Errorf("User - Repository|err when get by username, err:%v", err)
+		return domain.Users{}, err
+	}
+
+	return res, nil
+}

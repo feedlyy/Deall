@@ -19,6 +19,10 @@ func (u *userService) Register(ctx context.Context, user domain.Users) error {
 	return u.userRepo.Store(ctx, user)
 }
 
-func (u *userService) GetUSers(ctx context.Context) ([]domain.Users, error) {
+func (u *userService) GetUsers(ctx context.Context) ([]domain.Users, error) {
 	return u.userRepo.Fetch(ctx)
+}
+
+func (u *userService) GetUser(ctx context.Context, usr string) (domain.Users, error) {
+	return u.userRepo.GetByUsername(ctx, usr)
 }
