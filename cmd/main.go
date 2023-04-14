@@ -1,6 +1,9 @@
 package main
 
 import (
+	usrHandler "Deall/handler"
+	"Deall/repository"
+	"Deall/service"
 	"context"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
@@ -35,6 +38,7 @@ func main() {
 	// Connect to MongoDB
 	dbHost := viper.GetString(`database.host`)
 	dbPort := viper.GetString(`database.port`)
+	dbName := viper.GetString(`database.name`)
 	mongoUri := fmt.Sprintf("mongodb://%s:%s", dbHost, dbPort)
 	timeoutCtx := viper.GetInt(`context.timeout`)
 
@@ -53,8 +57,13 @@ func main() {
 	}
 	logrus.Info("Got ping from mongodb")
 
+	userRepo := repository.NewUserRepository(client.Database(dbName))
+	userService := service.NewUserService(userRepo)
+	userHandler := usrHandler.NewUserHandler(userService, time.Duration(timeoutCtx)*time.Second)
+
 	serverPort := viper.GetString(`server.address`)
 	handler := httprouter.New()
+	handler.POST("/api/v1/user", userHandler.RegistUser)
 
 	logrus.Infof("Server run on localhost%v", serverPort)
 	log.Fatal(http.ListenAndServe(serverPort, handler))
