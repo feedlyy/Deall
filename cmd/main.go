@@ -81,6 +81,7 @@ func main() {
 	handler := httprouter.New()
 	handler.POST("/api/v1/user", userHandler.RegistUser)
 	handler.DELETE("/api/v1/user/:id", userHandler.DeleteUser)
+	handler.PATCH("/api/v1/user/:id", userHandler.UpdateUser)
 	handler.GET("/api/v1/users", userHandler.GetAllUser)
 	handler.GET("/api/v1/user", userHandler.GetUser)
 

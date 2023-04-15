@@ -30,3 +30,7 @@ func (u *userService) GetUser(ctx context.Context, usr string) (domain.Users, er
 func (u *userService) DeleteUser(ctx context.Context, id string) error {
 	return u.userRepo.Delete(ctx, id)
 }
+
+func (u *userService) UpdateUser(ctx context.Context, user domain.Users) error {
+	return u.userRepo.Update(ctx, user)
+}

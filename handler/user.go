@@ -211,3 +211,85 @@ func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, ps http
 	json.NewEncoder(w).Encode(resp)
 	return
 }
+
+func (u *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var (
+		err  error
+		resp = helpers.Response{
+			Status:  helpers.SuccessMsg,
+			Message: "Data have been updated!",
+			Data:    nil,
+		}
+		id   = ps.ByName("id")
+		user = domain.Users{
+			Username:  r.PostFormValue("username"),
+			Password:  r.PostFormValue("password"),
+			Role:      r.PostFormValue("role"),
+			UpdatedAt: time.Now(),
+		}
+		pwd string
+	)
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(context.Background(), u.timeout)
+	defer cancel()
+
+	if id == "" {
+		resp.Status = helpers.FailMsg
+		resp.Message = "id cannot be empty"
+
+		// Serialize the error response to JSON and send it back to the client
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	if user.Role != "" {
+		if err = user.ValidateRole(); err != nil {
+			resp.Status = helpers.FailMsg
+			resp.Message = err.Error()
+
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}
+
+	if user.Password != "" {
+		// bcrypt the password
+		pwd, err = domain.HashPassword(user.Password)
+		if err != nil {
+			resp.Status = helpers.FailMsg
+			resp.Message = err.Error()
+
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}
+
+	user.Password = pwd
+	user.ID = id
+	err = u.userService.UpdateUser(ctx, user)
+	if err != nil {
+		resp.Status = helpers.FailMsg
+		resp.Message = err.Error()
+		switch {
+		case err == mongo.ErrNoDocuments:
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(resp)
+			return
+		default:
+			// Serialize the error response to JSON and send it back to the client
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}
+
+	json.NewEncoder(w).Encode(resp)
+	return
+}

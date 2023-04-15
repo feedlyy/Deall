@@ -95,11 +95,53 @@ func (u *userRepository) Delete(ctx context.Context, id string) error {
 
 	delRes, err = u.db.Collection(helpers.UsersCollection).DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
-		logrus.Errorf("User - Repository|err when delete user by username, err:%v", err)
+		logrus.Errorf("User - Repository|err when delete user by id, err:%v", err)
 		return err
 	}
 
 	if delRes.DeletedCount == 0 {
+		err = mongo.ErrNoDocuments
+		logrus.Error("User - Repository|no document found")
+		return err
+	}
+
+	return nil
+}
+
+func (u *userRepository) Update(ctx context.Context, user domain.Users) error {
+	var (
+		err          error
+		objID        primitive.ObjectID
+		updateRes    *mongo.UpdateResult
+		updateFields = bson.M{}
+	)
+
+	// turn string id into objID
+	objID, err = primitive.ObjectIDFromHex(user.ID)
+	if err != nil {
+		logrus.Errorf("User - Repository|err when generate objID, err:%v", err)
+		return err
+	}
+
+	if user.Username != "" {
+		updateFields["username"] = user.Username
+	}
+	if user.Password != "" {
+		updateFields["password"] = user.Password
+	}
+	if user.Role != "" {
+		updateFields["role"] = user.Role
+	}
+
+	updateRes, err = u.db.Collection(helpers.UsersCollection).UpdateByID(ctx, objID, bson.M{
+		"$set": updateFields,
+	})
+	if err != nil {
+		logrus.Errorf("User - Repository|err when update user by id, err:%v", err)
+		return err
+	}
+
+	if updateRes.ModifiedCount == 0 {
 		err = mongo.ErrNoDocuments
 		logrus.Error("User - Repository|no document found")
 		return err

@@ -6,6 +6,8 @@ import (
 )
 
 func (u Users) ValidateUser() error {
+	var err error
+
 	if u.Username == "" {
 		return errors.New("username cannot be empty")
 	} else if u.Password == "" {
@@ -14,8 +16,8 @@ func (u Users) ValidateUser() error {
 		return errors.New("role cannot be empty")
 	}
 
-	if u.Role != "Admin" && u.Role != "User" {
-		return errors.New("role are not exists, only accepted admin or user")
+	if err = u.ValidateRole(); err != nil {
+		return err
 	}
 
 	return nil
@@ -27,4 +29,11 @@ func HashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
+}
+
+func (u Users) ValidateRole() error {
+	if u.Role != "Admin" && u.Role != "User" {
+		return errors.New("role are not exists, only accepted Admin or User")
+	}
+	return nil
 }
