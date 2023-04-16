@@ -261,7 +261,7 @@ func (u *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, ps http
 	return
 }
 
-func (u *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (u *UserHandler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var (
 		err  error
 		resp = helpers.Response{
