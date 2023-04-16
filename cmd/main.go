@@ -87,7 +87,7 @@ func main() {
 	handler.POST("/api/v1/user", middleware.AuthMiddleware(userHandler.RegistUser, []string{"Admin"}))
 	handler.DELETE("/api/v1/user/:id", middleware.AuthMiddleware(userHandler.DeleteUser, []string{"Admin"}))
 	handler.PATCH("/api/v1/user/:id", middleware.AuthMiddleware(userHandler.UpdateUser, []string{"Admin"}))
-	handler.GET("/api/v1/users", middleware.AuthMiddleware(userHandler.GetAllUser, []string{"Admin"}))
+	handler.GET("/api/v1/users", middleware.AuthMiddleware(userHandler.GetAllUser, []string{"User", "Admin"}))
 	handler.GET("/api/v1/user", middleware.AuthMiddleware(userHandler.GetUser, []string{"User", "Admin"}))
 
 	logrus.Infof("Server run on localhost%v", serverPort)

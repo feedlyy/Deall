@@ -17,9 +17,10 @@ type Users struct {
 type UserRepository interface {
 	Store(ctx context.Context, user Users) error
 	Fetch(ctx context.Context) ([]Users, error)
-	GetByUsername(ctx context.Context, usr string) (Users, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, user Users) error
+	GetByUsername(ctx context.Context, usr string) (Users, error)
+	GetByID(ctx context.Context, id string) (Users, error)
 }
 
 type UserService interface {

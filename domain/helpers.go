@@ -70,3 +70,12 @@ func LocalLocation() (*time.Location, error) {
 
 	return loc, nil
 }
+
+func IsValidContains(arr []string, s string) bool {
+	for _, val := range arr {
+		if s == val {
+			return true
+		}
+	}
+	return false
+}

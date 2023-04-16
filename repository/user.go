@@ -60,25 +60,6 @@ func (u *userRepository) Fetch(ctx context.Context) ([]domain.Users, error) {
 	return res, nil
 }
 
-func (u *userRepository) GetByUsername(ctx context.Context, usr string) (domain.Users, error) {
-	var (
-		err error
-		res domain.Users
-	)
-
-	err = u.db.Collection(helpers.UsersCollection).FindOne(ctx, bson.M{"username": usr}).Decode(&res)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			logrus.Error("User - Repository|no document found")
-			return domain.Users{}, err
-		}
-		logrus.Errorf("User - Repository|err when get by username, err:%v", err)
-		return domain.Users{}, err
-	}
-
-	return res, nil
-}
-
 func (u *userRepository) Delete(ctx context.Context, id string) error {
 	var (
 		err    error
@@ -149,4 +130,50 @@ func (u *userRepository) Update(ctx context.Context, user domain.Users) error {
 	}
 
 	return nil
+}
+
+func (u *userRepository) GetByUsername(ctx context.Context, usr string) (domain.Users, error) {
+	var (
+		err error
+		res domain.Users
+	)
+
+	err = u.db.Collection(helpers.UsersCollection).FindOne(ctx, bson.M{"username": usr}).Decode(&res)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("User - Repository|no document found")
+			return domain.Users{}, err
+		}
+		logrus.Errorf("User - Repository|err when get by username, err:%v", err)
+		return domain.Users{}, err
+	}
+
+	return res, nil
+}
+
+func (u *userRepository) GetByID(ctx context.Context, id string) (domain.Users, error) {
+	var (
+		err   error
+		res   domain.Users
+		objID primitive.ObjectID
+	)
+
+	// turn string id into objID
+	objID, err = primitive.ObjectIDFromHex(id)
+	if err != nil {
+		logrus.Errorf("User - Repository|err when generate objID, err:%v", err)
+		return domain.Users{}, err
+	}
+
+	err = u.db.Collection(helpers.UsersCollection).FindOne(ctx, bson.M{"_id": objID}).Decode(&res)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("User - Repository|no document found")
+			return domain.Users{}, err
+		}
+		logrus.Errorf("User - Repository|err when get by username, err:%v", err)
+		return domain.Users{}, err
+	}
+
+	return res, nil
 }

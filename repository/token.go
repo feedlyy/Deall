@@ -37,7 +37,7 @@ func (t *tokenRepository) GetByToken(ctx context.Context, token string) (domain.
 		res domain.Tokens
 	)
 
-	err = t.db.Collection(helpers.UsersCollection).FindOne(ctx, bson.M{"token": token}).Decode(&res)
+	err = t.db.Collection(helpers.TokenCollection).FindOne(ctx, bson.M{"token": token}).Decode(&res)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logrus.Error("Token - Repository|no document found")
