@@ -2,6 +2,7 @@ package main
 
 import (
 	usrHandler "Deall/handler"
+	md "Deall/middleware"
 	"Deall/repository"
 	"Deall/service"
 	"context"
@@ -74,16 +75,20 @@ func main() {
 	}
 
 	userRepo := repository.NewUserRepository(client.Database(dbName))
-	userService := service.NewUserService(userRepo)
+	tokenRepo := repository.NewTokenRepository(client.Database(dbName))
+	userService := service.NewUserService(userRepo, tokenRepo)
 	userHandler := usrHandler.NewUserHandler(userService, time.Duration(timeoutCtx)*time.Second)
+	middleware := md.NewMiddleware(userRepo, tokenRepo)
 
 	serverPort := viper.GetString(`server.address`)
 	handler := httprouter.New()
-	handler.POST("/api/v1/user", userHandler.RegistUser)
-	handler.DELETE("/api/v1/user/:id", userHandler.DeleteUser)
-	handler.PATCH("/api/v1/user/:id", userHandler.UpdateUser)
-	handler.GET("/api/v1/users", userHandler.GetAllUser)
-	handler.GET("/api/v1/user", userHandler.GetUser)
+
+	handler.POST("/api/v1/login", userHandler.Login)
+	handler.POST("/api/v1/user", middleware.AuthMiddleware(userHandler.RegistUser, []string{"Admin"}))
+	handler.DELETE("/api/v1/user/:id", middleware.AuthMiddleware(userHandler.DeleteUser, []string{"Admin"}))
+	handler.PATCH("/api/v1/user/:id", middleware.AuthMiddleware(userHandler.UpdateUser, []string{"Admin"}))
+	handler.GET("/api/v1/users", middleware.AuthMiddleware(userHandler.GetAllUser, []string{"Admin"}))
+	handler.GET("/api/v1/user", middleware.AuthMiddleware(userHandler.GetUser, []string{"User", "Admin"}))
 
 	logrus.Infof("Server run on localhost%v", serverPort)
 	log.Fatal(http.ListenAndServe(serverPort, handler))

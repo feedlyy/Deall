@@ -2,7 +2,10 @@ package domain
 
 import (
 	"errors"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 func (u Users) ValidateUser() error {
@@ -31,9 +34,39 @@ func HashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
+func ValidatePassword(hashedPassword string, plainPassword string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (u Users) ValidateRole() error {
 	if u.Role != "Admin" && u.Role != "User" {
 		return errors.New("role are not exists, only accepted Admin or User")
 	}
 	return nil
+}
+
+func GenerateRandomUUID() string {
+	// Generate a new UUID
+	id := uuid.New()
+
+	return id.String()
+}
+
+func LocalLocation() (*time.Location, error) {
+	var (
+		loc *time.Location
+		err error
+	)
+
+	loc, err = time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		logrus.Errorf("Helper|Err when get  %v", err)
+		return nil, err
+	}
+
+	return loc, nil
 }

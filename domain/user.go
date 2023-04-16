@@ -28,4 +28,5 @@ type UserService interface {
 	GetUser(ctx context.Context, usr string) (Users, error)
 	DeleteUser(ctx context.Context, id string) error
 	UpdateUser(ctx context.Context, user Users) error
+	Authentication(ctx context.Context, username, password string) (string, error)
 }

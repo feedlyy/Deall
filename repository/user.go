@@ -132,6 +132,7 @@ func (u *userRepository) Update(ctx context.Context, user domain.Users) error {
 	if user.Role != "" {
 		updateFields["role"] = user.Role
 	}
+	updateFields["updated_at"] = user.UpdatedAt
 
 	updateRes, err = u.db.Collection(helpers.UsersCollection).UpdateByID(ctx, objID, bson.M{
 		"$set": updateFields,
