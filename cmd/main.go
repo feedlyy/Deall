@@ -2,6 +2,7 @@ package main
 
 import (
 	usrHandler "Deall/handler"
+	"Deall/helpers"
 	md "Deall/middleware"
 	"Deall/repository"
 	"Deall/service"
@@ -60,11 +61,11 @@ func main() {
 	logrus.Info("Got ping from mongodb")
 
 	// Get the student collection
-	collection := client.Database(dbName).Collection("users")
+	collection := client.Database(dbName).Collection(helpers.UsersCollection)
 
 	// Create a unique index on the name field
 	indexModel := mongo.IndexModel{
-		Keys:    bson.M{"name": 1},
+		Keys:    bson.M{"username": 1},
 		Options: options.Index().SetUnique(true),
 	}
 
