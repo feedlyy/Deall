@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type tokenRepository struct {
@@ -33,11 +34,19 @@ func (t *tokenRepository) Store(ctx context.Context, token domain.Tokens) error 
 
 func (t *tokenRepository) GetByToken(ctx context.Context, token string) (domain.Tokens, error) {
 	var (
-		err error
-		res domain.Tokens
+		err    error
+		res    domain.Tokens
+		filter = bson.M{}
 	)
 
-	err = t.db.Collection(helpers.TokenCollection).FindOne(ctx, bson.M{"token": token}).Decode(&res)
+	filter = bson.M{
+		"$and": bson.A{
+			bson.M{"token": token},
+			bson.M{"expiration": bson.M{"$gte": time.Now()}},
+		},
+	}
+
+	err = t.db.Collection(helpers.TokenCollection).FindOne(ctx, filter).Decode(&res)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logrus.Error("Token - Repository|no document found")
