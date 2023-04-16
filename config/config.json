@@ -7,8 +7,8 @@
     "timeout":5
   },
   "database": {
-    "host": "localhost",
-    "port": "27017",
-    "name": "local"
+    "URI": "mongodb+srv://mnurfadd:%s@cluster0.puuxvcd.mongodb.net/?retryWrites=true&w=majority",
+    "password": "ozbJvqbHgD95uToG",
+    "name": "deall"
   }
 }

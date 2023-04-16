@@ -39,26 +39,30 @@ func main() {
 	logrus.SetFormatter(customFormatter)
 
 	// Connect to MongoDB
-	dbHost := viper.GetString(`database.host`)
-	dbPort := viper.GetString(`database.port`)
+	dbURI := viper.GetString(`database.URI`)
+	dbPassword := viper.GetString(`database.password`)
 	dbName := viper.GetString(`database.name`)
-	mongoUri := fmt.Sprintf("mongodb://%s:%s", dbHost, dbPort)
+	mongoUri := fmt.Sprintf(dbURI, dbPassword)
 	timeoutCtx := viper.GetInt(`context.timeout`)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutCtx)*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoUri))
+
+	// Use the SetServerAPIOptions() method to set the Stable API version to 1
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI(mongoUri).SetServerAPIOptions(serverAPI)
+
+	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		panic(err)
 	}
 	defer client.Disconnect(ctx)
 
-	// test ping mongo
-	err = client.Ping(ctx, nil)
-	if err != nil {
+	// Send a ping to confirm a successful connection
+	if err = client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
 		panic(err)
 	}
-	logrus.Info("Got ping from mongodb")
+	logrus.Info("Pinged your deployment. You successfully connected to MongoDB!")
 
 	// Get the student collection
 	collection := client.Database(dbName).Collection(helpers.UsersCollection)
