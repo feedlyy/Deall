@@ -68,7 +68,6 @@ func (u *userService) UpdateUser(ctx context.Context, user domain.Users) error {
 		return err
 	}
 
-	// bcrypt the password
 	if user.Password != "" {
 		// bcrypt the password
 		pwd, err = domain.HashPassword(user.Password)
