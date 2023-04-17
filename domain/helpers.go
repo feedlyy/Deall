@@ -3,9 +3,7 @@ package domain
 import (
 	"errors"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 func (u Users) ValidateUser() error {
@@ -54,21 +52,6 @@ func GenerateRandomUUID() string {
 	id := uuid.New()
 
 	return id.String()
-}
-
-func LocalLocation() (*time.Location, error) {
-	var (
-		loc *time.Location
-		err error
-	)
-
-	loc, err = time.LoadLocation("Asia/Jakarta")
-	if err != nil {
-		logrus.Errorf("Helper|Err when get  %v", err)
-		return nil, err
-	}
-
-	return loc, nil
 }
 
 func IsValidContains(arr []string, s string) bool {

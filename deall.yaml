@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deall-deployment
+  labels:
+    app: deall-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deall-deployment
+  template:
+    metadata:
+      labels:
+        app: deall-deployment
+    spec:
+      containers:
+        - name: deall
+          image: asia.gcr.io/deall-383917/deall-deployment:1.8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: my-config
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: my-config
+          configMap:
+            name: my-config
+            items:
+              - key: config.json
+                path: config.json

@@ -1,0 +1,14 @@
+{
+  "debug": true,
+  "server": {
+    "address": ":8080"
+  },
+  "context":{
+    "timeout":5
+  },
+  "database": {
+    "URI": "mongodb+srv://mnurfadd:%s@cluster0.jgh91ts.mongodb.net/?retryWrites=true&w=majority",
+    "password": "kC2wS6KF6ZRRg3sf",
+    "name": "deall"
+  }
+}
